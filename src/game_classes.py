@@ -12,7 +12,7 @@ class Snake:
                       ord('s'): ('y', 1, ord('w')), ord('d'): ('x', 1, ord('a'))}
 
         # Last snakes cord, for covering it with ' ' symbol
-        self.last_cord = self.settings.cords[-1]
+        self.last_cord = self.settings.snake_cords[-1]
 
 
 
@@ -31,7 +31,7 @@ class Snake:
     def change_cords(self):
         """Func for changing the current cords"""
         settings = self.settings
-        first_cord = self.settings.cords[0]
+        first_cord = self.settings.snake_cords[0]
 
         # getting new cord
         if settings.snake_path[0] == 'y':
@@ -41,18 +41,22 @@ class Snake:
 
         # checking if new_cord == apple_cord, else keep 1 more snake part
         if new_cord != settings.apple_cord:
-            self.last_cord = settings.snake_path.pop()
+            self.last_cord = settings.snake_cords.pop()
         else:
             settings.apple_is_eaten = True
+            settings.score += 1
 
+
+        y, x = new_cord
         # checking if new_cord is valid
         if new_cord in settings.snake_cords:
             return False
-        elif (new_cord[0] > settings.max_y or new_cord[0] < 0) or (new_cord[1] > settings.max_x or new_cord[1] < 0):
-            return False
-        else:
-            settings.snake_cords.appendleft(new_cord)
-            return True
+
+        if (y < settings.field_top or y > settings.field_bottom or x < settings.field_left or x > settings.field_right):
+                return False
+
+        settings.snake_cords.appendleft(new_cord)
+        return True
 
 
 
@@ -64,9 +68,7 @@ class Snake:
         settings.screen.addstr(self.last_cord[0], self.last_cord[1], ' ')
 
         for i, j in settings.snake_cords:
-            settings.screen.addch(i, j, '#', settings.snake_color)
-
-        return True
+            settings.screen.addch(i, j, '#', curses.color_pair(settings.snake_color))
 
 
 class Apple:
@@ -75,17 +77,18 @@ class Apple:
 
 
     def generate_apple(self):
-        '''Function for creating a random apple'''
+        """Function for creating a random apple"""
         settings = self.settings
 
         if settings.apple_is_eaten:
             free = [(i, j)
-                    for i in range(settings.max_y + 1)
-                    for j in range(settings.max_x + 1)
+                    for i in range(settings.field_top, settings.field_bottom + 1)
+                    for j in range(settings.field_left, settings.field_right + 1)
                     if (i, j) not in settings.snake_cords]
 
             if free:
                 settings.apple_is_eaten = False
                 settings.apple_cord = random.choice(free)
-                settings.screen.addch(settings.apple_cord[0], settings.apple_cord[1], settings.apple_symbol, settings.apple_color)
-
+                settings.screen.addch(settings.apple_cord[0], settings.apple_cord[1], settings.apple_symbol, curses.color_pair(settings.apple_color))
+            else:
+                settings.win = True

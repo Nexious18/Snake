@@ -15,8 +15,8 @@ snake = [
 
 def main(screen):
     """Main function"""
-    screen.timeout(150)
     curses.curs_set(0)
+    screen.timeout(125)
 
     init_colors()
 
@@ -25,8 +25,9 @@ def main(screen):
 
     while True:
         try:
+            screen.erase()
             action = settings.stack[-1].run()
-        except (IndexError, KeyError, AttributeError):
+        except (IndexError, KeyError):
             break
 
         if action == 'exit':
